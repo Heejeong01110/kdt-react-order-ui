@@ -7,11 +7,7 @@ import axios from "axios";
 
 
 function App() {
-  const [products, setProducts] = useState([
-      { productId: 'uuid-1', productName:'콜롬비아 커피1', category:'커피빈', price:5000},
-      { productId: 'uuid-2', productName:'콜롬비아 커피2', category:'커피빈', price:5000},
-      { productId: 'uuid-3', productName:'콜롬비아 커피3', category:'커피빈', price:5000}
-  ]);
+  const [products, setProducts] = useState([]);
   const [items, setItems] = useState([]);
   const handleAddClicked = productId =>{
       const product = products.find(v=> v.productId === productId);
@@ -25,7 +21,29 @@ function App() {
         .then(v => setProducts(v.data));
   }, []);//빈 배열을 주면 딱 1번 실행됨됨
 
-  return (
+    const handleOrderSubmit = (order) =>{
+        if(items.length === 0){
+            alert("아이템을 추가해주세요!");
+        }else{
+            axios.post('http://localhost:8080/api/v1/orders', {
+                email: order.email,
+                address: order.address,
+                postcode: order.postcode,
+                orderItems: items.map(v => ({
+                    productId: v.productId,
+                    category: v.category,
+                    price: v.price,
+                    quantity: v.count
+                }))
+            }).then(
+                v => alert("주문이 정상적으로 접수되었습니다."),
+                e => {
+                    alert("서버 장애");
+                    console.log(e);
+                })
+        }
+    };
+    return (
       <div className="container-fluid">
       <div className="row justify-content-center m-4">
         <h1 className="text-center">Grids & Circle</h1>
@@ -36,7 +54,7 @@ function App() {
             <ProductList products={products} onAddClick={handleAddClicked}/>
           </div>
           <div className="col-md-4 summary p-4">
-            <Summary items={items}/>
+            <Summary items={items} onOrderSubmit={handleOrderSubmit}/>
           </div>
         </div>
       </div>
